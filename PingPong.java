@@ -4,7 +4,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
 public class PingPong{
-
+    static boolean startPressed = false;
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> startWindow());
     }
@@ -47,7 +47,10 @@ public class PingPong{
         startButton.setForeground(Color.black);
         startButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-
+                startPressed = true;
+                if (startPressed == true){
+                    gameWindow(frame);
+                }
                 //ну тут вже буде двіж при натисканні на кнопку
             }
         });
@@ -61,5 +64,38 @@ public class PingPong{
         frame.getContentPane().add(panel);
 
         frame.setVisible(true);
+    }
+    public static void gameWindow(JFrame frame) {
+        frame.getContentPane().removeAll();
+        frame.getContentPane().setBackground(Color.black);
+        JPanel gamePanel = new JPanel(){
+            protected void paintComponent(Graphics g){
+                super.paintComponent(g);
+                Graphics2D g2 = (Graphics2D) g;
+                g2.setColor(Color.black);
+                g2.fillRect(0, 0, getWidth(), getHeight());
+
+                int paddleWidth = 10;
+                int paddleHeight = 60;
+                int paddleY = getHeight() / 2 - paddleHeight / 2;
+                int secondPaddleX = getWidth() - 10 - paddleWidth;
+                int ballSize = 10;
+                int ballX = getWidth() / 2 - ballSize / 2;
+                int ballY = getHeight() / 2 - ballSize / 2;
+
+                g2.setColor(Color.white);
+                g2.fillRect(10, paddleY, paddleWidth, paddleHeight);
+
+                g2.setColor(Color.white);
+                g2.fillRect(secondPaddleX, paddleY, paddleWidth, paddleHeight);
+
+                g2.setColor(Color.white);
+                g2.fillOval(ballX, ballY, ballSize, ballSize);
+            }
+        };
+
+        frame.getContentPane().add(gamePanel);
+        frame.validate();
+        frame.repaint();
     }
 }
