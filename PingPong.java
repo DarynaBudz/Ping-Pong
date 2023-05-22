@@ -66,15 +66,18 @@ public class PingPong{
         frame.setVisible(true);
     }
     public static void gameWindow(JFrame frame) {
+        // тут прибрав стартовий екран
         frame.getContentPane().removeAll();
         frame.getContentPane().setBackground(Color.black);
         JPanel gamePanel = new JPanel(){
             protected void paintComponent(Graphics g){
+                // створив ігрове поле(знову зафарбував в чорний :) )
                 super.paintComponent(g);
                 Graphics2D g2 = (Graphics2D) g;
                 g2.setColor(Color.black);
                 g2.fillRect(0, 0, getWidth(), getHeight());
 
+                //змінні для ракеток і м'яча
                 int paddleWidth = 10;
                 int paddleHeight = 60;
                 int paddleY = getHeight() / 2 - paddleHeight / 2;
@@ -83,6 +86,7 @@ public class PingPong{
                 int ballX = getWidth() / 2 - ballSize / 2;
                 int ballY = getHeight() / 2 - ballSize / 2;
 
+                //а тут їхнє створення
                 g2.setColor(Color.white);
                 g2.fillRect(10, paddleY, paddleWidth, paddleHeight);
 
@@ -94,8 +98,8 @@ public class PingPong{
             }
         };
 
-        frame.getContentPane().add(gamePanel);
-        frame.validate();
-        frame.repaint();
+        frame.getContentPane().add(gamePanel); //відображення gamePanel
+        frame.validate(); // щоб норм все на екрані появилося
+        frame.repaint(); // "оновлення" екрану
     }
 }
