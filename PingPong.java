@@ -3,15 +3,16 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
-public class PingPong{
-    static boolean startPressed = false;
+public class PingPong {
+    private static JFrame frame;
+
     public static void main(String[] args) {
-        SwingUtilities.invokeLater(() -> startWindow());
+        SwingUtilities.invokeLater(() -> new PingPong());
     }
 
-    private static void startWindow() {
+    public PingPong() {
         // Вікно (я взяла 700х600, можем поміняти)
-        JFrame frame = new JFrame("Ping Pong");
+        frame = new JFrame("Ping Pong");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setSize(700, 600);
 
@@ -20,18 +21,14 @@ public class PingPong{
         panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
         panel.setBackground(Color.black);
 
-
         // Лейбл з гіфкою
         String gifPath = "images/get-real-cat.gif";      //шлях до гіфки(далі я її трошки зменшила,90х90)
         ImageIcon gifIcon = new ImageIcon(gifPath);
 
         Image gifImage = gifIcon.getImage();
-
         int newWidth = 90;
         int newHeight = 90;
-
         Image resizedImage = gifImage.getScaledInstance(newWidth, newHeight, Image.SCALE_DEFAULT);
-
         // тут вже зменшений розмір
         ImageIcon resizedGifIcon = new ImageIcon(resizedImage);
 
@@ -47,10 +44,7 @@ public class PingPong{
         startButton.setForeground(Color.black);
         startButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                startPressed = true;
-                if (startPressed == true){
-                    gameWindow(frame);
-                }
+                startButtonActionPreformed(e);
                 //ну тут вже буде двіж при натисканні на кнопку
             }
         });
@@ -65,41 +59,15 @@ public class PingPong{
 
         frame.setVisible(true);
     }
-    public static void gameWindow(JFrame frame) {
-        // тут прибрав стартовий екран
+
+    private static void startButtonActionPreformed(ActionEvent evt) {
         frame.getContentPane().removeAll();
-        frame.getContentPane().setBackground(Color.black);
-        JPanel gamePanel = new JPanel(){
-            protected void paintComponent(Graphics g){
-                // створив ігрове поле(знову зафарбував в чорний :) )
-                super.paintComponent(g);
-                Graphics2D g2 = (Graphics2D) g;
-                g2.setColor(Color.black);
-                g2.fillRect(0, 0, getWidth(), getHeight());
+        frame.repaint();
 
-                //змінні для ракеток і м'яча
-                int paddleWidth = 10;
-                int paddleHeight = 60;
-                int paddleY = getHeight() / 2 - paddleHeight / 2;
-                int secondPaddleX = getWidth() - 10 - paddleWidth;
-                int ballSize = 10;
-                int ballX = getWidth() / 2 - ballSize / 2;
-                int ballY = getHeight() / 2 - ballSize / 2;
-
-                //а тут їхнє створення
-                g2.setColor(Color.white);
-                g2.fillRect(10, paddleY, paddleWidth, paddleHeight);
-
-                g2.setColor(Color.white);
-                g2.fillRect(secondPaddleX, paddleY, paddleWidth, paddleHeight);
-
-                g2.setColor(Color.white);
-                g2.fillOval(ballX, ballY, ballSize, ballSize);
-            }
-        };
-
-        frame.getContentPane().add(gamePanel); //відображення gamePanel
-        frame.validate(); // щоб норм все на екрані появилося
-        frame.repaint(); // "оновлення" екрану
+        GamePong game = new GamePong();
+        frame.add(game);
+        game.requestFocusInWindow();
+        game.startGame();
+        frame.revalidate();
     }
 }
