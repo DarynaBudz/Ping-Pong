@@ -1,5 +1,3 @@
-package pingpong;
-
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.KeyEvent;
@@ -58,7 +56,6 @@ public class GamePong extends JPanel implements KeyListener {
         ballXSpeed = BALL_BASE_SPEED;
         ballYSpeed = BALL_BASE_SPEED;
 
-
         ballTrail = new Point[BALL_TRAIL_MAX_LENGTH];
         BALL_TRAIL_COLOR_START = new Color(255, 255, 255, 100);
         BALL_TRAIL_COLOR_END = new Color(255, 255, 255, 0);
@@ -97,33 +94,27 @@ public class GamePong extends JPanel implements KeyListener {
     private void updateBall() {
         ballX += ballXSpeed;
         ballY += ballYSpeed;
-
-        if (ballY <= 0 || ballY >= HEIGHT - BALL_SIZE) {
-            ballYSpeed = -ballYSpeed;
-        }
     }
 
     private void checkCollision() {
+        // Collision with paddles
         if (ballX <= PADDLE_WIDTH && ballY + BALL_SIZE >= paddle1Y && ballY <= paddle1Y + PADDLE_HEIGHT) {
-            double relativeIntersectY = (paddle1Y + PADDLE_HEIGHT / 2) - (ballY + BALL_SIZE / 2);
-            double normalizedRelativeIntersectionY = relativeIntersectY / (PADDLE_HEIGHT / 2);
-            double bounceAngle = normalizedRelativeIntersectionY * Math.PI / 4;
-            ballXSpeed = Math.abs(ballXSpeed) + BALL_SPEED_INCREMENT;
-            ballYSpeed = -BALL_BASE_SPEED * Math.sin(bounceAngle);
-        } else if (ballX >= WIDTH - PADDLE_WIDTH - BALL_SIZE && ballY + BALL_SIZE >= paddle2Y && ballY <= paddle2Y + PADDLE_HEIGHT) {
-            double relativeIntersectY = (paddle2Y + PADDLE_HEIGHT / 2) - (ballY + BALL_SIZE / 2);
-            double normalizedRelativeIntersectionY = relativeIntersectY / (PADDLE_HEIGHT / 2);
-            double bounceAngle = normalizedRelativeIntersectionY * Math.PI / 4;
-            ballXSpeed = -Math.abs(ballXSpeed) - BALL_SPEED_INCREMENT;
-            ballYSpeed = -BALL_BASE_SPEED * Math.sin(bounceAngle);
-        } else if (ballX < 0 || ballX > WIDTH - BALL_SIZE) {
-            if (ballX < 0) {
-                player2Score++;
-                ballXSpeed = -BALL_BASE_SPEED;
-            } else {
-                player1Score++;
-                ballXSpeed = BALL_BASE_SPEED;
-            }
+            ballXSpeed = Math.abs(ballXSpeed);
+        } else if (ballX + BALL_SIZE >= WIDTH - PADDLE_WIDTH && ballY + BALL_SIZE >= paddle2Y && ballY <= paddle2Y + PADDLE_HEIGHT) {
+            ballXSpeed = -Math.abs(ballXSpeed);
+        }
+
+        // Collision with walls
+        if (ballY <= 0 || ballY + BALL_SIZE >= HEIGHT) {
+            ballYSpeed = -ballYSpeed;
+        }
+
+        // Scoring
+        if (ballX <= 0) {
+            player2Score++;
+            resetBall();
+        } else if (ballX + BALL_SIZE >= WIDTH) {
+            player1Score++;
             resetBall();
         }
     }
@@ -131,7 +122,7 @@ public class GamePong extends JPanel implements KeyListener {
     private void resetBall() {
         ballX = WIDTH / 2 - BALL_SIZE / 2;
         ballY = HEIGHT / 2 - BALL_SIZE / 2;
-
+        ballXSpeed = BALL_BASE_SPEED;
         ballYSpeed = BALL_BASE_SPEED;
     }
 
@@ -140,6 +131,10 @@ public class GamePong extends JPanel implements KeyListener {
             ballTrail[i] = ballTrail[i - 1];
         }
         ballTrail[0] = new Point(ballX + BALL_SIZE / 2, ballY + BALL_SIZE / 2);
+    }
+
+    private boolean isKeyDown(int keyCode) {
+        return keys.getOrDefault(keyCode, false);
     }
 
     @Override
@@ -167,7 +162,7 @@ public class GamePong extends JPanel implements KeyListener {
         for (int i = 0; i < BALL_TRAIL_MAX_LENGTH; i++) {
             if (ballTrail[i] == null) continue;
             int trailSize = BALL_SIZE - (BALL_SIZE / BALL_TRAIL_MAX_LENGTH) * i;
-            int alpha = (50 / BALL_TRAIL_MAX_LENGTH) * (BALL_TRAIL_MAX_LENGTH - i);
+            int alpha = (255 / BALL_TRAIL_MAX_LENGTH) * (BALL_TRAIL_MAX_LENGTH - i);
             Color trailColor = new Color(
                     BALL_TRAIL_COLOR_START.getRed(),
                     BALL_TRAIL_COLOR_START.getGreen(),
@@ -186,40 +181,56 @@ public class GamePong extends JPanel implements KeyListener {
         g.setColor(Color.WHITE);
         g.setFont(new Font("Arial", Font.BOLD, 22));
         g.drawString("Player 1: " + player1Score, 20, 30);
-        g.drawString("Player 2: " + player2Score, WIDTH - 140, 30);
-    }
+        g.drawString("Player 2: " + player2Score, WIDTH - 130, 30);
 
-    private boolean isKeyDown(int keyCode) {
-        return keys.getOrDefault(keyCode, false);
+        // Draw game paused text
+        if (!timer.isRunning()) {
+            g.setFont(new Font("Arial", Font.BOLD, 40));
+            FontMetrics fontMetrics = g.getFontMetrics();
+            String pausedText = "Game Paused";
+            int pausedTextWidth = fontMetrics.stringWidth(pausedText);
+            int pausedTextHeight = fontMetrics.getHeight();
+            int pausedTextX = WIDTH / 2 - pausedTextWidth / 2;
+            int pausedTextY = HEIGHT / 2 - pausedTextHeight / 2;
+            g.drawString(pausedText, pausedTextX, pausedTextY);
+        }
     }
 
     @Override
     public void keyPressed(KeyEvent e) {
-        keys.put(e.getKeyCode(), true);
-        repaint();
+        if (e.getKeyCode() == KeyEvent.VK_SPACE) {
+            if (timer.isRunning()) {
+                timer.stop();
+            } else {
+                timer.start();
+            }
+            repaint();
+        } else {
+            keys.put(e.getKeyCode(), true);
+        }
     }
 
     @Override
     public void keyReleased(KeyEvent e) {
         keys.put(e.getKeyCode(), false);
-        repaint();
     }
 
     @Override
     public void keyTyped(KeyEvent e) {
-
     }
 
     public static void main(String[] args) {
-        JFrame frame = new JFrame("Pong");
-        GamePong game = new GamePong();
-        frame.add(game);
-        frame.pack();
-        frame.setResizable(false);
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.setLocationRelativeTo(null);
-        frame.setVisible(true);
-        game.startGame();
+        SwingUtilities.invokeLater(() -> {
+            JFrame frame = new JFrame("Pong");
+            frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+            frame.setResizable(false);
+            frame.add(new GamePong(), BorderLayout.CENTER);
+            frame.pack();
+            frame.setLocationRelativeTo(null);
+            frame.setVisible(true);
+        });
     }
 }
+
+
 
