@@ -11,25 +11,23 @@ public class PingPong {
     }
 
     public PingPong() {
-        // Вікно (я взяла 700х600, можем поміняти)
         frame = new JFrame("Ping Pong");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setSize(700, 600);
 
-        // Панелька (я думаю чорний фон норм, але то тоже якщо що змінимо)
+        //панелька
         JPanel panel = new JPanel();
         panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
         panel.setBackground(Color.black);
 
         // Лейбл з гіфкою
-        String gifPath = "images/get-real-cat.gif";      //шлях до гіфки(далі я її трошки зменшила,90х90)
+        String gifPath = "images/get-real-cat.gif";
         ImageIcon gifIcon = new ImageIcon(gifPath);
 
         Image gifImage = gifIcon.getImage();
         int newWidth = 90;
         int newHeight = 90;
         Image resizedImage = gifImage.getScaledInstance(newWidth, newHeight, Image.SCALE_DEFAULT);
-        // тут вже зменшений розмір
         ImageIcon resizedGifIcon = new ImageIcon(resizedImage);
 
         JLabel label = new JLabel("Welcome to Ping Pong!", resizedGifIcon, JLabel.CENTER);
@@ -45,7 +43,6 @@ public class PingPong {
         startButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 startButtonActionPreformed(e);
-                //ну тут вже буде двіж при натисканні на кнопку
             }
         });
         //додаєм все на панель

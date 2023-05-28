@@ -32,6 +32,8 @@ public class GamePong extends JPanel implements KeyListener {
     private Color BALL_TRAIL_COLOR_START;
     private Color BALL_TRAIL_COLOR_END;
 
+    private boolean isPaused;
+
     public GamePong() {
         setPreferredSize(new Dimension(WIDTH, HEIGHT));
         setBackground(Color.BLACK);
@@ -68,6 +70,19 @@ public class GamePong extends JPanel implements KeyListener {
     }
 
     public void startGame() {
+        if (!timer.isRunning()) {
+            timer.start();
+            isPaused = false;
+            repaint();
+        }
+    }
+
+    private void pauseGame() {
+        if (timer.isRunning()) {
+            timer.stop();
+            isPaused = true;
+            repaint();
+        }
     }
 
     private void update() {
@@ -97,25 +112,34 @@ public class GamePong extends JPanel implements KeyListener {
     }
 
     private void checkCollision() {
-        // Collision with paddles
         if (ballX <= PADDLE_WIDTH && ballY + BALL_SIZE >= paddle1Y && ballY <= paddle1Y + PADDLE_HEIGHT) {
             ballXSpeed = Math.abs(ballXSpeed);
         } else if (ballX + BALL_SIZE >= WIDTH - PADDLE_WIDTH && ballY + BALL_SIZE >= paddle2Y && ballY <= paddle2Y + PADDLE_HEIGHT) {
             ballXSpeed = -Math.abs(ballXSpeed);
         }
 
-        // Collision with walls
         if (ballY <= 0 || ballY + BALL_SIZE >= HEIGHT) {
             ballYSpeed = -ballYSpeed;
         }
 
-        // Scoring
         if (ballX <= 0) {
             player2Score++;
             resetBall();
         } else if (ballX + BALL_SIZE >= WIDTH) {
             player1Score++;
             resetBall();
+        }
+
+        // перевірка чи набрав гравець 10 очок
+        if (player1Score >= 10 || player2Score >= 10) {
+            pauseGame();
+            String winner = (player1Score >= 10) ? "Player 1" : "Player 2";
+            int choice = JOptionPane.showConfirmDialog(this, "Congratulations! " + winner + " won the game!\n\nOne more game?", "Game Over", JOptionPane.YES_NO_OPTION);
+            if (choice == JOptionPane.YES_OPTION) {
+                resetGame();
+            } else {
+                System.exit(0);
+            }
         }
     }
 
@@ -124,6 +148,13 @@ public class GamePong extends JPanel implements KeyListener {
         ballY = HEIGHT / 2 - BALL_SIZE / 2;
         ballXSpeed = BALL_BASE_SPEED;
         ballYSpeed = BALL_BASE_SPEED;
+    }
+
+    private void resetGame() {
+        player1Score = 0;
+        player2Score = 0;
+        resetBall();
+        startGame();
     }
 
     private void updateBallTrail() {
@@ -161,14 +192,9 @@ public class GamePong extends JPanel implements KeyListener {
         // Draw ball trail
         for (int i = 0; i < BALL_TRAIL_MAX_LENGTH; i++) {
             if (ballTrail[i] == null) continue;
-            int trailSize = BALL_SIZE - (BALL_SIZE / BALL_TRAIL_MAX_LENGTH) * i;
-            int alpha = (255 / BALL_TRAIL_MAX_LENGTH) * (BALL_TRAIL_MAX_LENGTH - i);
-            Color trailColor = new Color(
-                    BALL_TRAIL_COLOR_START.getRed(),
-                    BALL_TRAIL_COLOR_START.getGreen(),
-                    BALL_TRAIL_COLOR_START.getBlue(),
-                    alpha
-            );
+            int trailSize = BALL_SIZE - (BALL_SIZE / BALL_TRAIL_MAX_LENGTH * i);
+            int alpha = 255 - (255 / BALL_TRAIL_MAX_LENGTH * i);
+            Color trailColor = new Color(BALL_TRAIL_COLOR_START.getRed(), BALL_TRAIL_COLOR_START.getGreen(), BALL_TRAIL_COLOR_START.getBlue(), alpha);
             g.setColor(trailColor);
             g.fillOval(ballTrail[i].x - trailSize / 2, ballTrail[i].y - trailSize / 2, trailSize, trailSize);
         }
@@ -178,59 +204,58 @@ public class GamePong extends JPanel implements KeyListener {
         g.fillOval(ballX, ballY, BALL_SIZE, BALL_SIZE);
 
         // Draw scores
-        g.setColor(Color.WHITE);
-        g.setFont(new Font("Arial", Font.BOLD, 22));
-        g.drawString("Player 1: " + player1Score, 20, 30);
-        g.drawString("Player 2: " + player2Score, WIDTH - 130, 30);
+        g.setFont(new Font("Arial", Font.BOLD, 16));
+        g.drawString("Player 1: " + player1Score, 20, 20);
+        g.drawString("Player 2: " + player2Score, WIDTH - 110, 20);
 
-        // Draw game paused text
-        if (!timer.isRunning()) {
+        // пауза
+        if (isPaused) {
             g.setFont(new Font("Arial", Font.BOLD, 40));
             FontMetrics fontMetrics = g.getFontMetrics();
-            String pausedText = "Game Paused";
-            int pausedTextWidth = fontMetrics.stringWidth(pausedText);
-            int pausedTextHeight = fontMetrics.getHeight();
-            int pausedTextX = WIDTH / 2 - pausedTextWidth / 2;
-            int pausedTextY = HEIGHT / 2 - pausedTextHeight / 2;
-            g.drawString(pausedText, pausedTextX, pausedTextY);
+            String pauseText = "Game Paused";
+            int pauseTextWidth = fontMetrics.stringWidth(pauseText);
+            int pauseTextHeight = fontMetrics.getHeight();
+            g.drawString(pauseText, WIDTH / 2 - pauseTextWidth / 2, HEIGHT / 2 - pauseTextHeight / 2);
         }
-    }
-
-    @Override
-    public void keyPressed(KeyEvent e) {
-        if (e.getKeyCode() == KeyEvent.VK_SPACE) {
-            if (timer.isRunning()) {
-                timer.stop();
-            } else {
-                timer.start();
-            }
-            repaint();
-        } else {
-            keys.put(e.getKeyCode(), true);
-        }
-    }
-
-    @Override
-    public void keyReleased(KeyEvent e) {
-        keys.put(e.getKeyCode(), false);
     }
 
     @Override
     public void keyTyped(KeyEvent e) {
     }
 
+    @Override
+    public void keyPressed(KeyEvent e) {
+        if (keys.containsKey(e.getKeyCode())) {
+            keys.put(e.getKeyCode(), true);
+        }
+
+        if (e.getKeyCode() == KeyEvent.VK_SPACE) {
+            if (isPaused) {
+                startGame();
+            } else {
+                pauseGame();
+            }
+        }
+    }
+
+    @Override
+    public void keyReleased(KeyEvent e) {
+        if (keys.containsKey(e.getKeyCode())) {
+            keys.put(e.getKeyCode(), false);
+        }
+    }
+
     public static void main(String[] args) {
-        SwingUtilities.invokeLater(() -> {
-            JFrame frame = new JFrame("Pong");
-            frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-            frame.setResizable(false);
-            frame.add(new GamePong(), BorderLayout.CENTER);
-            frame.pack();
-            frame.setLocationRelativeTo(null);
-            frame.setVisible(true);
-        });
+        JFrame frame = new JFrame("Pong");
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setResizable(false);
+        frame.add(new GamePong(), BorderLayout.CENTER);
+        frame.pack();
+        frame.setLocationRelativeTo(null);
+        frame.setVisible(true);
     }
 }
+
 
 
 
