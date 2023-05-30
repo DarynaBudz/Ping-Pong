@@ -28,7 +28,18 @@ public class Pingpong {
         frame.setIconImage(icon.getImage());
 
         // Панель
-        JPanel panel = new JPanel(new GridBagLayout());
+        JPanel panel = new JPanel(new GridBagLayout()) {
+            // Переопределение метода paintComponent для рисования фонового изображения
+            @Override
+            protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+                // Загрузка изображения фона
+                String backgroundPath = "images\\background2.jpg";
+                ImageIcon backgroundImage = new ImageIcon(backgroundPath);
+                // Масштабирование изображения фона
+                g.drawImage(backgroundImage.getImage(), 0, 0, getWidth(), getHeight(), null);
+            }
+        };
         panel.setBackground(Color.black);
 
         // Лейбл з гіфкою
@@ -41,12 +52,8 @@ public class Pingpong {
         Image resizedImage = gifImage.getScaledInstance(newWidth, newHeight, Image.SCALE_DEFAULT);
         ImageIcon resizedGifIcon = new ImageIcon(resizedImage);
 
-        JLabel label = new JLabel("Welcome to Ping Pong!");
-        label.setFont(new Font("Arial", Font.BOLD, 24));
-        label.setForeground(Color.white);
-        
         JLabel Label2 = new JLabel("Choose a game mode:");
-        Label2.setFont(new Font("Arial", Font.BOLD, 15));
+        Label2.setFont(new Font("Century Gothic", Font.BOLD, 15));
         Label2.setForeground(Color.white);
         JLabel gifLabel = new JLabel(resizedGifIcon);
         gifLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
@@ -57,7 +64,7 @@ public class Pingpong {
         acceleratedModeButton = new JRadioButton("Mode with acceleration");
 
         // Групуємо радіокнопки, щоб вибрати лише одну одночасно
-        Font radioButtonFont = new Font("Arial", Font.PLAIN, 15);
+        Font radioButtonFont = new Font("Century Gothic", Font.BOLD, 15);
         Color radioButtonTextColor = Color.white;
         ButtonGroup buttonGroup = new ButtonGroup();
         buttonGroup.add(botModeButton);
@@ -74,10 +81,14 @@ public class Pingpong {
         acceleratedModeButton.setOpaque(false);
 
         // Кнопка старт
-        JButton startButton = new JButton("Start");
+        JButton startButton = new JButton();
         startButton.setAlignmentX(Component.CENTER_ALIGNMENT);
-        startButton.setBackground(Color.WHITE);
-        startButton.setForeground(Color.BLACK);
+        startButton.setBorderPainted(false);
+        startButton.setFocusPainted(false);
+        startButton.setContentAreaFilled(false);
+        startButton.setOpaque(false);
+        startButton.setIcon(new ImageIcon("images\\button2.png"));
+        startButton.setRolloverIcon(new ImageIcon("images\\button.png"));
         startButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 startButtonActionPerformed(e);
@@ -85,24 +96,22 @@ public class Pingpong {
         });
 
         GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(10, 0, 10, 0); // Зазори між елементами
+        gbc.insets = new Insets(10, 0, 0, 0); // Зазори між елементами
         gbc.gridy = 0;
-        panel.add(label, gbc);
-        gbc.gridy = 1;
         panel.add(gifLabel, gbc);
-        gbc.gridy = 2;
+        gbc.gridy = 1;
         panel.add(Label2, gbc);
-        gbc.gridy = 3;
+        gbc.gridy = 2;
 
         // Додамо радіокнопки до панелі
-        gbc.gridy = 4;
+        gbc.gridy = 3;
         panel.add(botModeButton, gbc);
-        gbc.gridy = 5;
+        gbc.gridy = 4;
         panel.add(normalModeButton, gbc);
-        gbc.gridy = 6;
+        gbc.gridy = 5;
         panel.add(acceleratedModeButton, gbc);
 
-        gbc.gridy = 7;
+        gbc.gridy = 6;
         panel.add(startButton, gbc);
 
         frame.getContentPane().add(panel);
